@@ -102,7 +102,7 @@ namespace GeoNames2Sql
 
         private async Task WriteGeoNames(IEnumerable<ExtendedGeoName> records)
         {
-            using (var conn = new SqlConnection(_connectionString))
+            /*using (var conn = new SqlConnection(_connectionString))
             {
                 conn.Open();
                 Console.WriteLine("Populating GeoNames...");
@@ -114,10 +114,11 @@ namespace GeoNames2Sql
                         UPDATE SET t.Name = @Name, t.NameASCII = @NameASCII, t.Latitude = @Latitude, t.Longitude = @Longitude,
                             t.FeatureClass = @FeatureClass, t.FeatureCode = @FeatureCode, t.CountryCode = @CountryCode,
                             t.Population = @Population, t.Elevation = @Elevation, t.Dem = @Dem, t.Timezone = @Timezone,
-                            t.ModificationDate = @ModificationDate
+                            t.ModificationDate = @ModificationDate,
+                            t.AdminCode1 = @AdminCode1, t.AdminCode2 = @AdminCode2
                     WHEN NOT MATCHED THEN
-                        INSERT (Id, Name, NameASCII, Latitude, Longitude, FeatureClass, FeatureCode, CountryCode, Population, Elevation, Dem, Timezone, ModificationDate) 
-                        VALUES (@Id, @Name, @NameASCII, @Latitude, @Longitude, @FeatureClass, @FeatureCode, @CountryCode, @Population, @Elevation, @Dem, @Timezone, @ModificationDate);";
+                        INSERT (Id, Name, NameASCII, Latitude, Longitude, FeatureClass, FeatureCode, CountryCode, Population, Elevation, Dem, Timezone, ModificationDate, AdminCode1, AdminCode2) 
+                        VALUES (@Id, @Name, @NameASCII, @Latitude, @Longitude, @FeatureClass, @FeatureCode, @CountryCode, @Population, @Elevation, @Dem, @Timezone, @ModificationDate, @AdminCode1, @AdminCode2);";
 
                 var command = conn.CreateCommand();
                 command.CommandText = sql;
@@ -136,7 +137,9 @@ namespace GeoNames2Sql
                     "@Elevation",
                     "@Dem",
                     "@Timezone",
-                    "@ModificationDate"
+                    "@ModificationDate",
+                    "@AdminCode1",
+                    "@AdminCode2"
                 };
 
                 var parameters = parameterNames.Select(pn =>
@@ -163,13 +166,28 @@ namespace GeoNames2Sql
                     parameters[10].Value = r.Dem;
                     parameters[11].Value = r.Timezone.HasValueOrDBNull();
                     parameters[12].Value = r.ModificationDate;
+                    parameters[13].Value = r.Admincodes[0];
+                    parameters[14].Value = r.Admincodes[1];
                     await command.ExecuteNonQueryAsync();
-                    Console.WriteLine($"GeoName ID: {r.Id}, Name: {r.Name}");
+                    Console.WriteLine($"GeoName ID: {r.Id}, Adm1: {r.Admincodes[0]}, Adm2: {r.Admincodes[1]} Name: {r.Name}");
                 }
 
                 Console.WriteLine();
                 Console.WriteLine("GeoNames added to database.");
+            }*/
+
+            using (var inserter = new AdvancedBulkInsert(_connectionString) ) {
+                Console.WriteLine("Populating GeoNames...");
+                Console.WriteLine();
+                foreach (var record in records) {
+                    await inserter.BulkInsert(record);
+                }
+                await inserter.Execute();   
+                
+                Console.WriteLine();
+                Console.WriteLine("GeoNames added to database.");
             }
+            
         }
     }
 }

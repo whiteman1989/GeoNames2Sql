@@ -58,6 +58,10 @@ namespace GeoNames2Sql
             services.AddTransient<GeoNamesRepository>();
             services.AddTransient<GeoNamesService>();
             services.AddTransient<UIService>();
+            services.AddTransient<AdminCode1Repository>();
+            services.AddTransient<LanguageRepository>();
+            services.AddTransient<Admin2CodeRepository>();
+            services.AddTransient<City1000Repository>();
 
             return services;
         }
